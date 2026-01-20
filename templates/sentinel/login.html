@@ -3,37 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KDF SENTINEL - Login</title>
+    <title>KDF SENTINEL - Secure Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #15803d 100%);
+            background-color: #ffffff;
+            background-image: 
+                radial-gradient(#e5e7eb 1px, transparent 1px),
+                radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+        
+        .password-toggle {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .password-toggle:hover {
+            color: #1e40af;
+        }
+        
+        .login-card {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 10px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #1e3a8a 0%, #15803d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+        
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+        
+        .security-badge {
+            background: linear-gradient(135deg, #f0f9ff 0%, #f0fdf4 100%);
+            border: 1px solid rgba(30, 64, 175, 0.1);
         }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md">
-        <!-- Logo and Title -->
-        <div class="text-center mb-8">
-            <div class="bg-white rounded-full w-24 h-24 mx-auto flex items-center justify-center mb-4 shadow-lg">
-                <svg class="w-16 h-16 text-green-700" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
-                </svg>
+        <!-- Logo and Title Section -->
+        <div class="text-center mb-10">
+            <div class="flex justify-center mb-6">
+                <div class="relative">
+                    <!-- KDF Logo -->
+                    <div class="w-28 h-28 mx-auto flex items-center justify-center mb-2">
+                        <img src="/static/images/kdf-logo.png" 
+                             alt="KDF Logo" 
+                             class="w-full h-full object-contain"
+                        >
+                    </div>
+                    
+                </div>
             </div>
-            <h1 class="text-4xl font-bold text-white mb-2">KDF SENTINEL</h1>
-            <p class="text-blue-100">Security Environment Network for Tactical Intelligence</p>
+            <h1 class="text-3xl font-bold gradient-text mb-3">KDF SENTINEL</h1>
+            <div class="security-badge inline-flex items-center px-4 py-2 rounded-full">
+                <i class="fas fa-lock text-blue-600 mr-2 text-sm"></i>
+                <p class="text-sm font-medium text-gray-700">Security Environment Network for Tactical Intelligence</p>
+            </div>
         </div>
 
         <!-- Login Card -->
-        <div class="bg-white rounded-lg shadow-2xl p-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Personnel Login</h2>
+        <div class="login-card bg-white rounded-xl p-8">
+            <div class="flex items-center justify-center mb-8">
+                <div class="w-12 h-1 bg-gradient-to-r from-blue-600 to-green-600 rounded-full"></div>
+                <h2 class="text-xl font-bold text-gray-800 mx-4">Personnel Authentication</h2>
+                <div class="w-12 h-1 bg-gradient-to-r from-green-600 to-blue-600 rounded-full"></div>
+            </div>
 
             <!-- Messages -->
             {% if messages %}
                 {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
-                        {{ message }}
+                    <div class="mb-6 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% else %}bg-green-50 border border-green-200 text-green-800{% endif %}">
+                        <div class="flex items-center">
+                            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-3"></i>
+                            <span class="font-medium">{{ message }}</span>
+                        </div>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -42,58 +99,141 @@
             <form method="POST" action="{% url 'login' %}">
                 {% csrf_token %}
                 
-                <div class="mb-5">
-                    <label for="service_number" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Service Number
+                <div class="mb-6">
+                    <label for="service_number" class="block text-sm font-semibold text-gray-700 mb-3">
+                        <i class="fas fa-id-card mr-2 text-blue-600"></i>Service Number
                     </label>
-                    <input 
-                        type="text" 
-                        name="service_number" 
-                        id="service_number" 
-                        required
-                        placeholder="e.g., KDF001"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
-                        autofocus
-                    >
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            name="service_number" 
+                            id="service_number" 
+                            required
+                            placeholder="KDF001"
+                            class="input-focus w-full px-4 py-3 pl-11 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 uppercase"
+                            autofocus
+                        >
+                        <div class="absolute left-3 top-3 text-gray-400">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 ml-1">Enter your official service identification number</p>
                 </div>
 
-                <div class="mb-6">
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                        Password
+                <div class="mb-8">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-3">
+                        <i class="fas fa-key mr-2 text-blue-600"></i>Password
                     </label>
-                    <input 
-                        type="password" 
-                        name="password" 
-                        id="password" 
-                        required
-                        placeholder="Enter your password"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            name="password" 
+                            id="password" 
+                            required
+                            placeholder="••••••••"
+                            class="input-focus w-full px-4 py-3 pl-11 pr-11 border border-gray-200 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        >
+                        <div class="absolute left-3 top-3 text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <!-- Eye toggle button -->
+                        <div class="absolute right-3 top-3">
+                            <span id="togglePassword" class="password-toggle text-gray-400 hover:text-blue-600">
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <p class="text-xs text-gray-500 ml-1">Enter your secure password</p>
+                        <a href="#" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Forgot Password?</a>
+                    </div>
                 </div>
 
                 <button 
                     type="submit"
-                    class="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-green-700 transition duration-200 shadow-lg"
+                    class="group w-full bg-gradient-to-r from-blue-600 to-green-600 text-white font-bold py-3.5 px-4 rounded-lg hover:from-blue-700 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                 >
-                    Sign In
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    <span>Access Secure Portal</span>
+                    <i class="fas fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
                 </button>
             </form>
 
-            <!-- Footer Info -->
-            <div class="mt-6 text-center text-sm text-gray-600">
-                <p>🔒 Secure Login with Multi-Factor Authentication</p>
-                <p class="mt-2 text-xs">Kenya Defence Forces © 2026</p>
+            <!-- Security Footer -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <div class="text-center">
+                    <div class="flex items-center justify-center mb-3">
+                        <div class="flex items-center mr-4">
+                            <i class="fas fa-shield-check text-green-600 mr-2"></i>
+                            <span class="text-xs text-gray-600">256-bit SSL</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-user-shield text-blue-600 mr-2"></i>
+                            <span class="text-xs text-gray-600">MFA Ready</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500">
+                        <i class="fas fa-copyright mr-1"></i> Kenya Defence Forces © 2026 • All access monitored
+                    </p>
+                </div>
             </div>
         </div>
 
         <!-- Development Notice -->
         {% if debug %}
-        <div class="mt-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded">
-            <p class="font-bold">Development Mode</p>
-            <p class="text-sm">2FA is disabled. Login with service number and password only.</p>
-            <p class="text-xs mt-2">Test Account: <strong>KDF001</strong> / Password: <strong>KDF@2026Secure</strong></p>
+        <div class="mt-6 p-4 rounded-lg bg-amber-50 border border-amber-200">
+            <div class="flex items-start">
+                <i class="fas fa-flask text-amber-600 mt-0.5 mr-3"></i>
+                <div>
+                    <p class="font-bold text-amber-800 text-sm">Development Environment</p>
+                    <p class="text-xs text-amber-700 mt-1">Two-factor authentication is currently disabled. Use test credentials for access.</p>
+                    <div class="mt-2 text-xs bg-white p-2 rounded border border-amber-200">
+                        <div class="font-mono">
+                            <div><span class="font-bold">Service No:</span> KDF001</div>
+                            <div><span class="font-bold">Password:</span> KDF@2026Secure</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
+
+    <script>
+        // Password visibility toggle
+        document.getElementById('togglePassword').addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+                this.classList.add('text-blue-600');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+                this.classList.remove('text-blue-600');
+            }
+        });
+
+        // Auto-uppercase service number
+        const serviceNumberInput = document.getElementById('service_number');
+        serviceNumberInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+
+        // Add subtle animation to form elements on focus
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('ring-2', 'ring-blue-100');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('ring-2', 'ring-blue-100');
+            });
+        });
+    </script>
 </body>
 </html>
