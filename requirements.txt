@@ -1,0 +1,31 @@
+Django
+psycopg
+djangorestframework
+django-filter
+django-cors-headers
+
+# Authentication & Security
+pyotp
+cryptography
+django-guardian
+python-dotenv
+
+# Async / Realtime
+channels
+channels-redis
+redis
+
+# Background tasks
+celery
+
+# File & Image handling
+Pillow
+
+# Production server & static files
+gunicorn
+whitenoise
+
+# Utilities
+requests
+python-dateutil
+pytz
