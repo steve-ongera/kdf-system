@@ -1,114 +1,142 @@
-{% extends 'sentinel/admin_base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Command Dashboard - KDF SENTINEL{% endblock %}
 
 {% block content %}
 <style>
+    /* Professional Military Typography */
+    :root {
+        --kdf-navy: #0F2A4D;
+        --kdf-blue: #1e40af;
+        --kdf-green: #15803d;
+        --kdf-gold: #D4AF37;
+        --kdf-red: #DC2626;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-700: #374151;
+        --gray-900: #111827;
+    }
+
     .dashboard-header {
-        background: linear-gradient(135deg, #0F2A4D 0%, #1e40af 100%);
-        padding: 30px;
-        border-radius: 15px;
-        color: white;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        background: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border-bottom: 4px solid var(--kdf-navy);
+        border-radius: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .dashboard-header h1 {
-        margin: 0 0 10px 0;
-        font-size: 32px;
+        margin: 0 0 0.5rem 0;
+        font-size: 2rem;
         font-weight: 700;
+        color: var(--kdf-navy);
+        letter-spacing: -0.025em;
     }
 
     .dashboard-header p {
         margin: 0;
-        opacity: 0.9;
-        font-size: 16px;
+        color: var(--gray-700);
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
     }
 
+    .dashboard-subtitle {
+        color: var(--kdf-blue);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Metrics Grid */
     .metrics-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
     .metric-card {
         background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        border-left: 4px solid transparent;
+        padding: 1.5rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--border-color);
     }
 
     .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-color: var(--gray-300);
     }
 
-    .metric-card.blue { border-left-color: #1e40af; }
-    .metric-card.green { border-left-color: #15803d; }
-    .metric-card.red { border-left-color: #DC2626; }
-    .metric-card.gold { border-left-color: #D4AF37; }
-    .metric-card.purple { border-left-color: #7c3aed; }
-    .metric-card.orange { border-left-color: #ea580c; }
-
     .metric-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        border-radius: 4px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
-        margin-bottom: 15px;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        color: var(--icon-color);
+        background: var(--icon-bg);
     }
 
-    .metric-card.blue .metric-icon { background: rgba(30, 64, 175, 0.1); color: #1e40af; }
-    .metric-card.green .metric-icon { background: rgba(21, 128, 61, 0.1); color: #15803d; }
-    .metric-card.red .metric-icon { background: rgba(220, 38, 38, 0.1); color: #DC2626; }
-    .metric-card.gold .metric-icon { background: rgba(212, 175, 55, 0.1); color: #D4AF37; }
-    .metric-card.purple .metric-icon { background: rgba(124, 58, 237, 0.1); color: #7c3aed; }
-    .metric-card.orange .metric-icon { background: rgba(234, 88, 12, 0.1); color: #ea580c; }
-
     .metric-value {
-        font-size: 36px;
+        font-size: 2.25rem;
         font-weight: 700;
-        margin: 10px 0;
-        color: #1a1a1a;
+        margin: 0.5rem 0;
+        color: var(--gray-900);
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
     .metric-label {
-        color: #6b7280;
-        font-size: 14px;
+        color: var(--gray-700);
+        font-size: 0.875rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
         font-weight: 600;
+        margin-bottom: 0.5rem;
     }
 
-    .metric-trend {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-top: 10px;
-        font-size: 13px;
+    .metric-description {
+        color: var(--gray-700);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin-top: 0.5rem;
     }
 
-    .metric-trend.up { color: #15803d; }
-    .metric-trend.down { color: #DC2626; }
-
+    /* Charts Grid */
     .charts-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-        gap: 25px;
-        margin-bottom: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
     .chart-card {
         background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 1.5rem;
+        border: 1px solid var(--gray-200);
+        border-radius: 4px;
+        height: 100%;
     }
 
     .chart-card.full-width {
@@ -116,72 +144,114 @@
     }
 
     .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f3f4f6;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-200);
     }
 
     .chart-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: #1a1a1a;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 0.75rem;
+    }
+
+    .chart-title i {
+        color: var(--title-color);
     }
 
     .chart-subtitle {
-        font-size: 13px;
-        color: #6b7280;
-        margin-top: 5px;
+        color: var(--gray-700);
+        font-size: 0.875rem;
+        line-height: 1.5;
     }
 
     .chart-container {
         position: relative;
-        height: 350px;
+        height: 320px;
     }
 
     .chart-container.small {
-        height: 250px;
+        height: 280px;
     }
 
+    /* Military Grade Visuals */
+    .military-graph {
+        position: relative;
+        background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+    }
+
+    .grid-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(to right, var(--gray-200) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--gray-200) 1px, transparent 1px);
+        background-size: 40px 40px;
+        opacity: 0.3;
+    }
+
+    /* Data Table */
     .data-table {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 1rem;
+        font-size: 0.875rem;
     }
 
     .data-table th {
-        background: #f9fafb;
-        padding: 12px;
+        background: var(--gray-50);
+        padding: 1rem;
         text-align: left;
         font-weight: 600;
-        color: #374151;
-        font-size: 13px;
+        color: var(--gray-700);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--gray-200);
     }
 
     .data-table td {
-        padding: 12px;
-        border-bottom: 1px solid #f3f4f6;
-        font-size: 14px;
+        padding: 1rem;
+        border-bottom: 1px solid var(--gray-200);
+        color: var(--gray-700);
+    }
+
+    .data-table tr:last-child td {
+        border-bottom: none;
     }
 
     .data-table tr:hover {
-        background: #f9fafb;
+        background: var(--gray-50);
     }
 
-    .severity-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 11px;
+    /* Badges */
+    .severity-badge,
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        display: inline-block;
+        letter-spacing: 0.05em;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .severity-badge::before,
+    .status-badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
     }
 
     .severity-critical { background: #fee2e2; color: #991b1b; }
@@ -189,19 +259,44 @@
     .severity-medium { background: #fef3c7; color: #92400e; }
     .severity-low { background: #d1fae5; color: #065f46; }
 
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 600;
-        display: inline-block;
-    }
-
     .status-active { background: #d1fae5; color: #065f46; }
     .status-planning { background: #e0e7ff; color: #3730a3; }
     .status-completed { background: #ddd6fe; color: #5b21b6; }
 
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
     @media (max-width: 768px) {
+        .metrics-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .chart-card {
+            padding: 1rem;
+        }
+        
+        .chart-container {
+            height: 280px;
+        }
+        
+        .chart-container.small {
+            height: 240px;
+        }
+        
+        .dashboard-header {
+            padding: 1.5rem;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
         .charts-grid {
             grid-template-columns: 1fr;
         }
@@ -209,108 +304,128 @@
         .chart-card.full-width {
             grid-column: 1;
         }
+        
+        .metric-value {
+            font-size: 1.875rem;
+        }
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--gray-700);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: var(--gray-300);
+        margin-bottom: 1rem;
     }
 </style>
 
 <!-- Dashboard Header -->
 <div class="dashboard-header">
-    <h1>⭐ Command Dashboard</h1>
-    <p>Strategic Operations Overview - Kenya Defence Forces</p>
+    <div class="dashboard-subtitle">Strategic Command Dashboard</div>
+    <h1>Operational Intelligence Overview</h1>
+    <p>Comprehensive situational awareness and real-time analytics for KDF command personnel. Last updated: {{ current_time|date:"F j, Y H:i"|default:"Now" }}</p>
 </div>
 
 <!-- Key Metrics Grid -->
 <div class="metrics-grid">
-    <div class="metric-card blue">
+    <div class="metric-card" style="--border-color: #1e40af; --icon-color: #1e40af; --icon-bg: #eff6ff;">
         <div class="metric-icon">
             <i class="bi bi-people-fill"></i>
         </div>
         <div class="metric-value">{{ total_personnel|default:"0" }}</div>
         <div class="metric-label">Active Personnel</div>
+        <div class="metric-description">Across all branches and units</div>
     </div>
 
-    <div class="metric-card green">
+    <div class="metric-card" style="--border-color: #15803d; --icon-color: #15803d; --icon-bg: #f0fdf4;">
         <div class="metric-icon">
             <i class="bi bi-crosshair"></i>
         </div>
         <div class="metric-value">{{ active_missions|default:"0" }}</div>
-        <div class="metric-label">Active Missions</div>
+        <div class="metric-label">Active Operations</div>
+        <div class="metric-description">Currently deployed missions</div>
     </div>
 
-    <div class="metric-card red">
+    <div class="metric-card" style="--border-color: #DC2626; --icon-color: #DC2626; --icon-bg: #fef2f2;">
         <div class="metric-icon">
             <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
         <div class="metric-value">{{ critical_threats|default:"0" }}</div>
         <div class="metric-label">Critical Threats</div>
+        <div class="metric-description">Requiring immediate attention</div>
     </div>
 
-    <div class="metric-card gold">
+    <div class="metric-card" style="--border-color: #D4AF37; --icon-color: #D4AF37; --icon-bg: #fefce8;">
         <div class="metric-icon">
-            <i class="bi bi-currency-dollar"></i>
+            <i class="bi bi-cash-stack"></i>
         </div>
         <div class="metric-value">KES {{ total_budget_allocated|floatformat:0|default:"0" }}M</div>
         <div class="metric-label">Budget Allocated</div>
+        <div class="metric-description">Active operations budget</div>
     </div>
 
-    <div class="metric-card purple">
+    <div class="metric-card" style="--border-color: #7c3aed; --icon-color: #7c3aed; --icon-bg: #f5f3ff;">
         <div class="metric-icon">
             <i class="bi bi-cpu-fill"></i>
         </div>
         <div class="metric-value">{{ active_ml_models|default:"0" }}</div>
-        <div class="metric-label">Active ML Models</div>
+        <div class="metric-label">AI Systems Active</div>
+        <div class="metric-description">ML models deployed</div>
     </div>
 
-    <div class="metric-card orange">
+    <div class="metric-card" style="--border-color: #ea580c; --icon-color: #ea580c; --icon-bg: #fff7ed;">
         <div class="metric-icon">
             <i class="bi bi-shield-check"></i>
         </div>
         <div class="metric-value">{{ resolution_rate|default:"0" }}%</div>
         <div class="metric-label">Incident Resolution</div>
+        <div class="metric-description">Closed incidents rate</div>
     </div>
 </div>
 
 <!-- Charts Section -->
 <div class="charts-grid">
-    <!-- Mission Timeline (Line Chart) -->
-    <div class="chart-card full-width">
+    <!-- Mission Activity Timeline -->
+    <div class="chart-card military-graph full-width">
+        <div class="grid-lines"></div>
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-graph-up" style="color: #1e40af;"></i>
-                    Mission Activity Timeline
-                </div>
-                <div class="chart-subtitle">Last 90 days mission creation trends</div>
+            <div class="chart-title" style="--title-color: #1e40af;">
+                <i class="bi bi-graph-up"></i>
+                Mission Activity Timeline
             </div>
+            <div class="chart-subtitle">Mission creation trends over the last 90 days</div>
         </div>
         <div class="chart-container">
             <canvas id="missionTimelineChart"></canvas>
         </div>
     </div>
 
-    <!-- Threat Intelligence Trends (Line Chart) -->
-    <div class="chart-card full-width">
+    <!-- Threat Intelligence Monitoring -->
+    <div class="chart-card military-graph full-width">
+        <div class="grid-lines"></div>
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-exclamation-diamond" style="color: #DC2626;"></i>
-                    Threat Detection Trends
-                </div>
-                <div class="chart-subtitle">30-day threat intelligence monitoring</div>
+            <div class="chart-title" style="--title-color: #DC2626;">
+                <i class="bi bi-exclamation-diamond"></i>
+                Threat Intelligence Monitoring
             </div>
+            <div class="chart-subtitle">Threat detection frequency over the last 30 days</div>
         </div>
         <div class="chart-container">
             <canvas id="threatTrendsChart"></canvas>
         </div>
     </div>
 
-    <!-- Mission Status Distribution (Donut Chart) -->
+    <!-- Mission Status Distribution -->
     <div class="chart-card">
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-pie-chart-fill" style="color: #15803d;"></i>
-                    Mission Status Distribution
-                </div>
+            <div class="chart-title" style="--title-color: #15803d;">
+                <i class="bi bi-pie-chart-fill"></i>
+                Mission Status Distribution
             </div>
         </div>
         <div class="chart-container small">
@@ -318,14 +433,12 @@
         </div>
     </div>
 
-    <!-- Threat Severity Distribution (Donut Chart) -->
+    <!-- Threat Severity Analysis -->
     <div class="chart-card">
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-shield-exclamation" style="color: #ea580c;"></i>
-                    Threat Severity Levels
-                </div>
+            <div class="chart-title" style="--title-color: #ea580c;">
+                <i class="bi bi-shield-exclamation"></i>
+                Threat Severity Analysis
             </div>
         </div>
         <div class="chart-container small">
@@ -333,14 +446,12 @@
         </div>
     </div>
 
-    <!-- Branch Distribution (Donut Chart) -->
+    <!-- Branch Deployment -->
     <div class="chart-card">
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-diagram-3-fill" style="color: #7c3aed;"></i>
-                    Personnel by Branch
-                </div>
+            <div class="chart-title" style="--title-color: #7c3aed;">
+                <i class="bi bi-diagram-3-fill"></i>
+                Personnel Deployment by Branch
             </div>
         </div>
         <div class="chart-container small">
@@ -348,14 +459,12 @@
         </div>
     </div>
 
-    <!-- Incident Priority (Donut Chart) -->
+    <!-- Incident Priority Levels -->
     <div class="chart-card">
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-exclamation-octagon-fill" style="color: #D4AF37;"></i>
-                    Incident Priority Levels
-                </div>
+            <div class="chart-title" style="--title-color: #D4AF37;">
+                <i class="bi bi-exclamation-octagon-fill"></i>
+                Incident Priority Distribution
             </div>
         </div>
         <div class="chart-container small">
@@ -363,14 +472,13 @@
         </div>
     </div>
 
-    <!-- Equipment by Category (Bar Chart) -->
-    <div class="chart-card">
+    <!-- Equipment Inventory -->
+    <div class="chart-card military-graph">
+        <div class="grid-lines"></div>
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-box-seam-fill" style="color: #1e40af;"></i>
-                    Equipment by Category
-                </div>
+            <div class="chart-title" style="--title-color: #0F2A4D;">
+                <i class="bi bi-box-seam-fill"></i>
+                Equipment Inventory by Category
             </div>
         </div>
         <div class="chart-container">
@@ -378,14 +486,13 @@
         </div>
     </div>
 
-    <!-- Threat Sources (Bar Chart) -->
-    <div class="chart-card">
+    <!-- Threat Intelligence Sources -->
+    <div class="chart-card military-graph">
+        <div class="grid-lines"></div>
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-broadcast" style="color: #15803d;"></i>
-                    Threat Intelligence Sources
-                </div>
+            <div class="chart-title" style="--title-color: #15803d;">
+                <i class="bi bi-broadcast"></i>
+                Threat Intelligence Sources
             </div>
         </div>
         <div class="chart-container">
@@ -393,14 +500,13 @@
         </div>
     </div>
 
-    <!-- Operational Readiness (Radar Chart) -->
-    <div class="chart-card">
+    <!-- Operational Readiness -->
+    <div class="chart-card military-graph">
+        <div class="grid-lines"></div>
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-radar" style="color: #DC2626;"></i>
-                    Operational Readiness Score
-                </div>
+            <div class="chart-title" style="--title-color: #DC2626;">
+                <i class="bi bi-radar"></i>
+                Operational Readiness Assessment
             </div>
         </div>
         <div class="chart-container">
@@ -408,14 +514,12 @@
         </div>
     </div>
 
-    <!-- Rank Distribution (Bar Chart) -->
+    <!-- Rank Structure -->
     <div class="chart-card">
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-bar-chart-fill" style="color: #7c3aed;"></i>
-                    Personnel Rank Distribution
-                </div>
+            <div class="chart-title" style="--title-color: #7c3aed;">
+                <i class="bi bi-bar-chart-fill"></i>
+                Rank Structure Distribution
             </div>
         </div>
         <div class="chart-container">
@@ -423,16 +527,15 @@
         </div>
     </div>
 
-    <!-- Login Activity (Line Chart) -->
-    <div class="chart-card full-width">
+    <!-- Security Activity -->
+    <div class="chart-card military-graph full-width">
+        <div class="grid-lines"></div>
         <div class="chart-header">
-            <div>
-                <div class="chart-title">
-                    <i class="bi bi-graph-up-arrow" style="color: #ea580c;"></i>
-                    Login Activity Monitoring
-                </div>
-                <div class="chart-subtitle">Successful vs Failed login attempts - Last 30 days</div>
+            <div class="chart-title" style="--title-color: #ea580c;">
+                <i class="bi bi-graph-up-arrow"></i>
+                Security Activity Monitoring
             </div>
+            <div class="chart-subtitle">Login success and failure rates over the last 30 days</div>
         </div>
         <div class="chart-container">
             <canvas id="loginTrendsChart"></canvas>
@@ -440,75 +543,94 @@
     </div>
 </div>
 
-<!-- Recent Threats Table -->
-<div class="chart-card" style="margin-bottom: 30px;">
+<!-- High Priority Threats -->
+<div class="chart-card" style="margin-bottom: 2.5rem;">
     <div class="chart-header">
-        <div>
-            <div class="chart-title">
-                <i class="bi bi-list-ul" style="color: #DC2626;"></i>
-                High Priority Threats
-            </div>
+        <div class="chart-title" style="--title-color: #DC2626;">
+            <i class="bi bi-list-ul"></i>
+            High Priority Threats
+            <span class="status-badge severity-critical" style="margin-left: auto;">
+                {{ high_severity_threats|length }} Active
+            </span>
         </div>
     </div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Threat</th>
-                <th>Type</th>
-                <th>Severity</th>
-                <th>Location</th>
-                <th>Detected</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for threat in high_severity_threats %}
-            <tr>
-                <td><strong>{{ threat.title }}</strong></td>
-                <td>{{ threat.threat_type }}</td>
-                <td>
-                    <span class="severity-badge severity-{{ threat.severity|lower }}">
-                        {{ threat.severity }}
-                    </span>
-                </td>
-                <td>{{ threat.location }}</td>
-                <td>{{ threat.detected_at|date:"M d, Y H:i" }}</td>
-                <td>{{ threat.status }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 30px; color: #6b7280;">
-                    No high priority threats detected
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% if high_severity_threats %}
+    <div class="data-table-container" style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Threat Description</th>
+                    <th>Type</th>
+                    <th>Severity</th>
+                    <th>Location</th>
+                    <th>Detection Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for threat in high_severity_threats|slice:":10" %}
+                <tr>
+                    <td>
+                        <strong>{{ threat.title|truncatechars:50 }}</strong>
+                        {% if threat.description %}
+                        <div style="font-size: 0.75rem; color: var(--gray-600); margin-top: 0.25rem;">
+                            {{ threat.description|truncatechars:60 }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>{{ threat.threat_type }}</td>
+                    <td>
+                        <span class="severity-badge severity-{{ threat.severity|lower }}">
+                            {{ threat.severity }}
+                        </span>
+                    </td>
+                    <td>{{ threat.location|truncatechars:20 }}</td>
+                    <td>{{ threat.detected_at|date:"M d H:i" }}</td>
+                    <td>{{ threat.status|default:"Monitoring" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-check-circle-fill"></i>
+        <h3 style="color: var(--gray-700); margin-bottom: 0.5rem;">No Active High Priority Threats</h3>
+        <p style="color: var(--gray-600);">All monitored threats are currently at acceptable levels.</p>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Chart.js Library -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
-    // Parse data from Django context
-    const missionsTimeline = JSON.parse('{{ missions_timeline|safe }}');
-    const missionsByStatus = JSON.parse('{{ missions_by_status|safe }}');
-    const threatTrends = JSON.parse('{{ threat_trends|safe }}');
-    const threatsBySeverity = JSON.parse('{{ threats_by_severity|safe }}');
-    const threatsBySource = JSON.parse('{{ threats_by_source|safe }}');
-    const branchDistribution = JSON.parse('{{ branch_distribution|safe }}');
-    const rankDistribution = JSON.parse('{{ rank_distribution|safe }}');
-    const equipmentByCategory = JSON.parse('{{ equipment_by_category|safe }}');
-    const incidentsByPriority = JSON.parse('{{ incidents_by_priority|safe }}');
-    const operationalReadiness = JSON.parse('{{ operational_readiness|safe }}');
-    const loginTrends = JSON.parse('{{ login_trends|safe }}');
+    // Military Style Chart Configuration
+    const militaryChartConfig = {
+        font: {
+            family: "'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
+            size: 12
+        },
+        color: '#374151',
+        borderColor: '#e5e7eb'
+    };
 
-    // Chart.js Default Settings
-    Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-    Chart.defaults.color = '#6b7280';
+    // Apply global chart settings
+    Object.assign(Chart.defaults, militaryChartConfig);
 
-    // Color Palettes
-    const kdfColors = ['#0F2A4D', '#1e40af', '#15803d', '#D4AF37', '#DC2626', '#7c3aed', '#ea580c'];
+    // Military color palette (subdued, professional)
+    const militaryColors = {
+        navy: '#0F2A4D',
+        blue: '#1e40af',
+        green: '#15803d',
+        gold: '#D4AF37',
+        red: '#DC2626',
+        purple: '#7c3aed',
+        orange: '#ea580c',
+        gray: '#6b7280'
+    };
+
+    // Severity colors
     const severityColors = {
         'CRITICAL': '#DC2626',
         'HIGH': '#ea580c',
@@ -516,288 +638,386 @@
         'LOW': '#15803d'
     };
 
-    // 1. Mission Timeline Chart (Line)
-    new Chart(document.getElementById('missionTimelineChart'), {
-        type: 'line',
-        data: {
-            labels: missionsTimeline.map(d => new Date(d.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})),
-            datasets: [{
-                label: 'Missions Created',
-                data: missionsTimeline.map(d => d.count),
-                borderColor: '#1e40af',
-                backgroundColor: 'rgba(30, 64, 175, 0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { precision: 0 } }
-            }
-        }
-    });
+    // Faded military colors for backgrounds
+    const fadedColors = {
+        navy: 'rgba(15, 42, 77, 0.1)',
+        blue: 'rgba(30, 64, 175, 0.1)',
+        green: 'rgba(21, 128, 61, 0.1)',
+        red: 'rgba(220, 38, 38, 0.1)',
+        gold: 'rgba(212, 175, 55, 0.1)',
+        purple: 'rgba(124, 58, 237, 0.1)',
+        orange: 'rgba(234, 88, 12, 0.1)'
+    };
 
-    // 2. Threat Trends Chart (Line)
-    new Chart(document.getElementById('threatTrendsChart'), {
-        type: 'line',
-        data: {
-            labels: threatTrends.map(d => new Date(d.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})),
-            datasets: [{
-                label: 'Threats Detected',
-                data: threatTrends.map(d => d.count),
-                borderColor: '#DC2626',
-                backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { precision: 0 } }
-            }
+    // Parse data from Django context with error handling
+    function parseData(dataString) {
+        try {
+            return JSON.parse(dataString || '[]');
+        } catch (e) {
+            console.warn('Failed to parse data:', dataString);
+            return [];
         }
-    });
+    }
 
-    // 3. Mission Status Donut Chart
-    new Chart(document.getElementById('missionStatusChart'), {
-        type: 'doughnut',
-        data: {
-            labels: missionsByStatus.map(m => m.status),
-            datasets: [{
-                data: missionsByStatus.map(m => m.count),
-                backgroundColor: kdfColors,
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
+    const missionsTimeline = parseData('{{ missions_timeline|safe|escapejs }}');
+    const missionsByStatus = parseData('{{ missions_by_status|safe|escapejs }}');
+    const threatTrends = parseData('{{ threat_trends|safe|escapejs }}');
+    const threatsBySeverity = parseData('{{ threats_by_severity|safe|escapejs }}');
+    const threatsBySource = parseData('{{ threats_by_source|safe|escapejs }}');
+    const branchDistribution = parseData('{{ branch_distribution|safe|escapejs }}');
+    const rankDistribution = parseData('{{ rank_distribution|safe|escapejs }}');
+    const equipmentByCategory = parseData('{{ equipment_by_category|safe|escapejs }}');
+    const incidentsByPriority = parseData('{{ incidents_by_priority|safe|escapejs }}');
+    const operationalReadiness = parseData('{{ operational_readiness|safe|escapejs }}');
+    const loginTrends = parseData('{{ login_trends|safe|escapejs }}');
 
-    // 4. Threat Severity Donut Chart
-    new Chart(document.getElementById('threatSeverityChart'), {
-        type: 'doughnut',
-        data: {
-            labels: threatsBySeverity.map(t => t.severity),
-            datasets: [{
-                data: threatsBySeverity.map(t => t.count),
-                backgroundColor: threatsBySeverity.map(t => severityColors[t.severity] || '#6b7280'),
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
+    // Date formatter for military style (short, precise)
+    function formatMilitaryDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
 
-    // 5. Branch Distribution Donut Chart
-    new Chart(document.getElementById('branchChart'), {
-        type: 'doughnut',
-        data: {
-            labels: branchDistribution.map(b => b.branch),
-            datasets: [{
-                data: branchDistribution.map(b => b.count),
-                backgroundColor: ['#0F2A4D', '#1e40af', '#15803d'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-
-    // 6. Incident Priority Donut Chart
-    new Chart(document.getElementById('incidentPriorityChart'), {
-        type: 'doughnut',
-        data: {
-            labels: incidentsByPriority.map(i => i.priority),
-            datasets: [{
-                data: incidentsByPriority.map(i => i.count),
-                backgroundColor: kdfColors,
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-
-    // 7. Equipment Category Bar Chart
-    new Chart(document.getElementById('equipmentCategoryChart'), {
-        type: 'bar',
-        data: {
-            labels: equipmentByCategory.map(e => e.category),
-            datasets: [{
-                label: 'Count',
-                data: equipmentByCategory.map(e => e.count),
-                backgroundColor: '#1e40af',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // 8. Threat Source Bar Chart
-    new Chart(document.getElementById('threatSourceChart'), {
-        type: 'bar',
-        data: {
-            labels: threatsBySource.map(t => t.source),
-            datasets: [{
-                label: 'Threats',
-                data: threatsBySource.map(t => t.count),
-                backgroundColor: '#15803d',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                x: { beginAtZero: true }
-            }
-        }
-    });
-
-    // 9. Operational Readiness Radar Chart
-    new Chart(document.getElementById('readinessRadarChart'), {
-        type: 'radar',
-        data: {
-            labels: ['Personnel', 'Equipment', 'Missions', 'Intelligence', 'Logistics'],
-            datasets: [{
-                label: 'Readiness Score',
-                data: [
-                    operationalReadiness.personnel,
-                    operationalReadiness.equipment,
-                    operationalReadiness.missions,
-                    operationalReadiness.intelligence,
-                    operationalReadiness.logistics
-                ],
-                backgroundColor: 'rgba(30, 64, 175, 0.2)',
-                borderColor: '#1e40af',
-                borderWidth: 2,
-                pointBackgroundColor: '#1e40af',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: '#1e40af'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                r: {
-                    beginAtZero: true,
-                    max: 100
-                }
-            }
-        }
-    });
-
-    // 10. Rank Distribution Bar Chart
-    new Chart(document.getElementById('rankChart'), {
-        type: 'bar',
-        data: {
-            labels: rankDistribution.map(r => r.rank),
-            datasets: [{
-                label: 'Personnel',
-                data: rankDistribution.map(r => r.count),
-                backgroundColor: '#7c3aed',
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    // 11. Login Trends Chart
-    new Chart(document.getElementById('loginTrendsChart'), {
-        type: 'line',
-        data: {
-            labels: loginTrends.map(d => new Date(d.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})),
-            datasets: [
-                {
-                    label: 'Successful Logins',
-                    data: loginTrends.map(d => d.successful),
-                    borderColor: '#15803d',
-                    backgroundColor: 'rgba(21, 128, 61, 0.1)',
+    // 1. Mission Timeline Chart
+    if (document.getElementById('missionTimelineChart') && missionsTimeline.length) {
+        new Chart(document.getElementById('missionTimelineChart'), {
+            type: 'line',
+            data: {
+                labels: missionsTimeline.map(d => formatMilitaryDate(d.date)),
+                datasets: [{
+                    label: 'Missions Created',
+                    data: missionsTimeline.map(d => d.count),
+                    borderColor: militaryColors.blue,
+                    backgroundColor: fadedColors.blue,
+                    borderWidth: 2,
                     tension: 0.4,
                     fill: true,
-                    borderWidth: 3
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
                 },
-                {
-                    label: 'Failed Logins',
-                    data: loginTrends.map(d => d.failed),
-                    borderColor: '#DC2626',
-                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    borderWidth: 3
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: { precision: 0 }
+                    },
+                    x: {
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
                 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'top' }
-            },
-            scales: {
-                y: { beginAtZero: true, ticks: { precision: 0 } }
             }
-        }
-    });
+        });
+    }
+
+    // 2. Threat Trends Chart
+    if (document.getElementById('threatTrendsChart') && threatTrends.length) {
+        new Chart(document.getElementById('threatTrendsChart'), {
+            type: 'line',
+            data: {
+                labels: threatTrends.map(d => formatMilitaryDate(d.date)),
+                datasets: [{
+                    label: 'Threats Detected',
+                    data: threatTrends.map(d => d.count),
+                    borderColor: militaryColors.red,
+                    backgroundColor: fadedColors.red,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                }
+            }
+        });
+    }
+
+    // 3. Mission Status Distribution
+    if (document.getElementById('missionStatusChart') && missionsByStatus.length) {
+        new Chart(document.getElementById('missionStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: missionsByStatus.map(m => m.status),
+                datasets: [{
+                    data: missionsByStatus.map(m => m.count),
+                    backgroundColor: Object.values(militaryColors),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20 }
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Threat Severity Analysis
+    if (document.getElementById('threatSeverityChart') && threatsBySeverity.length) {
+        new Chart(document.getElementById('threatSeverityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: threatsBySeverity.map(t => t.severity),
+                datasets: [{
+                    data: threatsBySeverity.map(t => t.count),
+                    backgroundColor: threatsBySeverity.map(t => severityColors[t.severity] || militaryColors.gray),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    // 5. Branch Deployment
+    if (document.getElementById('branchChart') && branchDistribution.length) {
+        new Chart(document.getElementById('branchChart'), {
+            type: 'doughnut',
+            data: {
+                labels: branchDistribution.map(b => b.branch),
+                datasets: [{
+                    data: branchDistribution.map(b => b.count),
+                    backgroundColor: [militaryColors.navy, militaryColors.blue, militaryColors.green],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    // 6. Incident Priority Distribution
+    if (document.getElementById('incidentPriorityChart') && incidentsByPriority.length) {
+        new Chart(document.getElementById('incidentPriorityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: incidentsByPriority.map(i => i.priority),
+                datasets: [{
+                    data: incidentsByPriority.map(i => i.count),
+                    backgroundColor: Object.values(militaryColors),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    // 7. Equipment Inventory
+    if (document.getElementById('equipmentCategoryChart') && equipmentByCategory.length) {
+        new Chart(document.getElementById('equipmentCategoryChart'), {
+            type: 'bar',
+            data: {
+                labels: equipmentByCategory.map(e => e.category.replace('_', ' ')),
+                datasets: [{
+                    label: 'Equipment Count',
+                    data: equipmentByCategory.map(e => e.count),
+                    backgroundColor: militaryColors.navy,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // 8. Threat Sources
+    if (document.getElementById('threatSourceChart') && threatsBySource.length) {
+        new Chart(document.getElementById('threatSourceChart'), {
+            type: 'bar',
+            data: {
+                labels: threatsBySource.map(t => t.source.replace('_', ' ')),
+                datasets: [{
+                    label: 'Threat Count',
+                    data: threatsBySource.map(t => t.count),
+                    backgroundColor: militaryColors.green,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    // 9. Operational Readiness
+    if (document.getElementById('readinessRadarChart') && operationalReadiness) {
+        new Chart(document.getElementById('readinessRadarChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Personnel', 'Equipment', 'Missions', 'Intelligence', 'Logistics'],
+                datasets: [{
+                    label: 'Readiness Score',
+                    data: [
+                        operationalReadiness.personnel || 0,
+                        operationalReadiness.equipment || 0,
+                        operationalReadiness.missions || 0,
+                        operationalReadiness.intelligence || 0,
+                        operationalReadiness.logistics || 0
+                    ],
+                    backgroundColor: fadedColors.blue,
+                    borderColor: militaryColors.blue,
+                    borderWidth: 2,
+                    pointBackgroundColor: militaryColors.blue,
+                    pointBorderColor: '#ffffff',
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        pointLabels: { font: { size: 11 } },
+                        grid: { color: 'rgba(0,0,0,0.1)' }
+                    }
+                }
+            }
+        });
+    }
+
+    // 10. Rank Structure
+    if (document.getElementById('rankChart') && rankDistribution.length) {
+        new Chart(document.getElementById('rankChart'), {
+            type: 'bar',
+            data: {
+                labels: rankDistribution.map(r => r.rank),
+                datasets: [{
+                    label: 'Personnel Count',
+                    data: rankDistribution.map(r => r.count),
+                    backgroundColor: militaryColors.purple,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxRotation: 45 }
+                    }
+                }
+            }
+        });
+    }
+
+    // 11. Security Activity
+    if (document.getElementById('loginTrendsChart') && loginTrends.length) {
+        new Chart(document.getElementById('loginTrendsChart'), {
+            type: 'line',
+            data: {
+                labels: loginTrends.map(d => formatMilitaryDate(d.date)),
+                datasets: [
+                    {
+                        label: 'Successful Logins',
+                        data: loginTrends.map(d => d.successful || 0),
+                        borderColor: militaryColors.green,
+                        backgroundColor: fadedColors.green,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Failed Attempts',
+                        data: loginTrends.map(d => d.failed || 0),
+                        borderColor: militaryColors.red,
+                        backgroundColor: fadedColors.red,
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { padding: 20 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    }
+                }
+            }
+        });
+    }
 </script>
 {% endblock %}

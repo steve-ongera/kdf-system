@@ -26,10 +26,13 @@ from .utils import send_otp_sms, send_otp_email, get_client_ip, get_user_agent
 
 # ==================== AUTHENTICATION VIEWS ====================
 
+from .utils import send_otp_sms, send_otp_email, get_client_ip, get_user_agent, send_otp
+
+# ==================== AUTHENTICATION VIEWS ====================
+
 def login_view(request):
     """Handle user login with optional 2FA based on DEBUG setting"""
     
-    # Redirect if already authenticated
     if request.user.is_authenticated:
         return redirect('dashboard_router')
     
@@ -37,15 +40,12 @@ def login_view(request):
         service_number = request.POST.get('service_number', '').strip().upper()
         password = request.POST.get('password', '')
         
-        # Get client information
         ip_address = get_client_ip(request)
         user_agent = get_user_agent(request)
         
-        # Authenticate user
         user = authenticate(request, service_number=service_number, password=password)
         
-        if user is not None:
-            # Check if account is locked
+        if user:
             if user.is_account_locked():
                 LoginAttempt.objects.create(
                     user=user,
@@ -58,7 +58,6 @@ def login_view(request):
                 messages.error(request, f'Account locked until {user.account_locked_until.strftime("%H:%M")}. Please try again later.')
                 return render(request, 'sentinel/login.html')
             
-            # Check if user is active
             if not user.is_active:
                 LoginAttempt.objects.create(
                     user=user,
@@ -71,40 +70,43 @@ def login_view(request):
                 messages.error(request, 'Your account is inactive. Contact your commanding officer.')
                 return render(request, 'sentinel/login.html')
             
-            # Reset failed attempts on successful authentication
+            # Reset failed attempts
             user.failed_login_attempts = 0
             user.last_login_ip = ip_address
             user.save()
             
-            # 2FA Logic based on DEBUG setting
             if not settings.DEBUG and user.is_two_factor_enabled:
-                # Production: Require 2FA
                 request.session['pre_2fa_user_id'] = str(user.id)
                 request.session['pre_2fa_ip'] = ip_address
                 
-                # Generate and send OTP
                 otp_code = str(random.randint(100000, 999999))
                 expires_at = timezone.now() + timedelta(minutes=10)
                 
-                # Create OTP record
                 TwoFactorAuth.objects.create(
                     user=user,
                     code=otp_code,
-                    method='SMS',  # Default to SMS
+                    method='SMS/EMAIL',
                     expires_at=expires_at,
                     ip_address=ip_address
                 )
                 
-                # Send OTP via SMS
-                send_otp_sms(user.phone_number, otp_code)
+                # Send OTP via both SMS and Email
+                sms_result, email_result = send_otp(
+                    phone_number=user.phone_number,
+                    email=user.email,
+                    otp_code=otp_code
+                )
                 
-                messages.success(request, f'OTP sent to {user.phone_number[-4:].rjust(10, "*")}')
+                messages.success(
+                    request,
+                    f'OTP sent to {user.phone_number[-4:].rjust(10,"*")} and {user.email}'
+                )
                 return redirect('verify_otp')
+            
             else:
-                # Development: Skip 2FA and login directly
+                # Development or 2FA skipped
                 login(request, user)
                 
-                # Log successful login
                 LoginAttempt.objects.create(
                     user=user,
                     service_number=service_number,
@@ -113,7 +115,6 @@ def login_view(request):
                     successful=True
                 )
                 
-                # Audit log
                 AuditLog.objects.create(
                     user=user,
                     action='LOGIN',
@@ -127,12 +128,11 @@ def login_view(request):
                 messages.success(request, f'Welcome back, {user.rank} {user.last_name}!')
                 return redirect('dashboard_router')
         else:
-            # Failed login attempt
+            # Handle failed login attempts
             try:
                 user_obj = KDFUser.objects.get(service_number=service_number)
                 user_obj.failed_login_attempts += 1
                 
-                # Lock account after 5 failed attempts
                 if user_obj.failed_login_attempts >= 5:
                     user_obj.account_locked_until = timezone.now() + timedelta(minutes=30)
                     user_obj.save()
@@ -145,7 +145,6 @@ def login_view(request):
                         successful=False,
                         failure_reason='Account locked after 5 failed attempts'
                     )
-                    
                     messages.error(request, 'Account locked for 30 minutes due to multiple failed login attempts.')
                 else:
                     user_obj.save()
@@ -159,10 +158,8 @@ def login_view(request):
                         successful=False,
                         failure_reason='Invalid password'
                     )
-                    
                     messages.error(request, f'Invalid credentials. {remaining} attempts remaining.')
             except KDFUser.DoesNotExist:
-                # User doesn't exist
                 LoginAttempt.objects.create(
                     service_number=service_number,
                     ip_address=ip_address,
@@ -173,6 +170,9 @@ def login_view(request):
                 messages.error(request, 'Invalid service number or password.')
     
     return render(request, 'sentinel/login.html')
+
+
+
 
 
 def verify_otp_view(request):
@@ -247,7 +247,7 @@ def verify_otp_view(request):
 
 
 def resend_otp_view(request):
-    """Resend OTP to user"""
+    """Resend OTP to user via SMS and Email"""
     
     if 'pre_2fa_user_id' not in request.session:
         messages.error(request, 'Session expired. Please login again.')
@@ -259,23 +259,24 @@ def resend_otp_view(request):
         user = KDFUser.objects.get(id=user_id)
         ip_address = get_client_ip(request)
         
-        # Generate new OTP
         otp_code = str(random.randint(100000, 999999))
         expires_at = timezone.now() + timedelta(minutes=10)
         
-        # Create OTP record
         TwoFactorAuth.objects.create(
             user=user,
             code=otp_code,
-            method='SMS',
+            method='SMS/EMAIL',
             expires_at=expires_at,
             ip_address=ip_address
         )
         
-        # Send OTP
-        send_otp_sms(user.phone_number, otp_code)
+        sms_result, email_result = send_otp(
+            phone_number=user.phone_number,
+            email=user.email,
+            otp_code=otp_code
+        )
         
-        messages.success(request, 'New OTP sent successfully.')
+        messages.success(request, 'New OTP sent successfully to your phone and email.')
     except KDFUser.DoesNotExist:
         messages.error(request, 'Invalid session.')
         return redirect('login')
@@ -572,38 +573,42 @@ def command_dashboard(request):
         timestamp__gte=last_7_days
     ).count()
     
-    # Login trends - FIXED: Using Sum with Case/When
-    login_trends_data = list(
-        LoginAttempt.objects.filter(timestamp__gte=last_30_days)
-        .annotate(date=TruncDate('timestamp'))
-        .values('date')
-        .annotate(
-            successful=Sum(
-                Case(
-                    When(successful=True, then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField()
-                )
-            ),
-            failed=Sum(
-                Case(
-                    When(successful=False, then=Value(1)),
-                    default=Value(0),
-                    output_field=IntegerField()
-                )
-            )
-        )
-        .order_by('date')
-    )
+    # Login trends - SIMPLIFIED: Two separate queries then merge
+    # Get successful logins by date
+    successful_logins = LoginAttempt.objects.filter(
+        timestamp__gte=last_30_days,
+        successful=True
+    ).annotate(date=TruncDate('timestamp')).values('date').annotate(count=Count('id')).order_by('date')
+
+    # Get failed logins by date
+    failed_logins = LoginAttempt.objects.filter(
+        timestamp__gte=last_30_days,
+        successful=False
+    ).annotate(date=TruncDate('timestamp')).values('date').annotate(count=Count('id')).order_by('date')
+
+    # Merge the results
+    successful_dict = {str(item['date']): item['count'] for item in successful_logins}
+    failed_dict = {str(item['date']): item['count'] for item in failed_logins}
+
+    # Get all unique dates and combine
+    all_dates = set(successful_dict.keys()) | set(failed_dict.keys())
+
+    login_trends_data = []
+    for date_str in sorted(all_dates):
+        login_trends_data.append({
+            'date': date_str,
+            'successful': successful_dict.get(date_str, 0),
+            'failed': failed_dict.get(date_str, 0)
+        })
     
-    # Process login trends to ensure proper JSON serialization
     processed_login_trends = []
     for trend in login_trends_data:
         processed_login_trends.append({
-            'date': trend['date'].isoformat() if trend['date'] else None,
-            'successful': trend['successful'] or 0,
-            'failed': trend['failed'] or 0
+            'date': trend['date'],  # ✅ already JSON-safe
+            'successful': trend.get('successful', 0),
+            'failed': trend.get('failed', 0)
         })
+
     
     # ==================== ML MODEL PERFORMANCE ====================
     # Active ML Models

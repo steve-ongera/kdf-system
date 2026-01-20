@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-w6*!no97rsgi3*tpa0gk)yx=k)+tbx)wy$lkm_a($e6extj95h'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -130,10 +130,10 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_PASSWORD = 'your-app-password'
+EMAIL_HOST_USER='innovationhubsoftwaresltd@gmail.com'
+EMAIL_HOST_PASSWORD='wtzg mvcn ztoe qige'
 
-DEFAULT_FROM_EMAIL = 'Your System Name <your-email@gmail.com>'
+DEFAULT_FROM_EMAIL = 'KDF SYSTEM <kdfsystem@gmail.com>'
 
 
 # Session security

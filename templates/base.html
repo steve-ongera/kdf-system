@@ -22,13 +22,17 @@
             --kdf-green: #15803d;
             --kdf-gold: #D4AF37;
             --kdf-red: #DC2626;
+            --kdf-light-blue: #3B82F6;
             --sidebar-width: 280px;
+            --sidebar-collapsed: 80px;
             --topbar-height: 70px;
+            --sidebar-transition: 0.3s ease;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f3f4f6;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
             overflow-x: hidden;
         }
 
@@ -39,18 +43,19 @@
             left: 0;
             right: 0;
             height: var(--topbar-height);
-            background: linear-gradient(135deg, var(--kdf-navy) 0%, var(--kdf-blue) 50%, var(--kdf-green) 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, var(--kdf-navy) 0%, var(--kdf-blue) 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 20px;
             z-index: 1000;
-            transition: left 0.3s ease;
+            transition: all var(--sidebar-transition);
         }
 
-        .topbar.sidebar-open {
+        .topbar.sidebar-expanded {
             left: var(--sidebar-width);
+            right: 0;
         }
 
         .topbar-left {
@@ -60,22 +65,23 @@
         }
 
         .toggle-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             border: none;
             color: white;
             width: 45px;
             height: 45px;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 22px;
         }
 
         .toggle-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.25);
+            transform: rotate(180deg) scale(1.1);
         }
 
         .logo-section {
@@ -84,107 +90,241 @@
             gap: 12px;
         }
 
-        .logo-icon {
+        .logo-container {
+            position: relative;
             width: 45px;
             height: 45px;
+            border-radius: 12px;
+            overflow: hidden;
             background: white;
-            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--kdf-green);
-            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 5px;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
         }
 
         .logo-text h1 {
             color: white;
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
             margin: 0;
+            background: linear-gradient(45deg, #ffffff, #e0e7ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .logo-text p {
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.85);
             font-size: 11px;
             margin: 0;
+            font-weight: 500;
         }
 
+        /* Topbar Right */
         .topbar-right {
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .user-info {
+        /* User Profile Dropdown */
+        .user-profile {
+            position: relative;
+        }
+
+        .user-profile-btn {
             display: flex;
             align-items: center;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-profile-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
         }
 
         .user-avatar {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: var(--kdf-gold);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
+            overflow: hidden;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-details {
-            color: white;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
         }
 
         .user-details .name {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
+            white-space: nowrap;
         }
 
         .user-details .rank {
             font-size: 11px;
             opacity: 0.9;
-        }
-
-        .logout-btn {
-            background: var(--kdf-red);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 4px;
         }
 
-        .logout-btn:hover {
-            background: #B91C1C;
-            transform: translateY(-2px);
+        .user-details .rank i {
+            font-size: 10px;
+            color: var(--kdf-gold);
+        }
+
+        .dropdown-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .user-profile-btn.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            min-width: 250px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            overflow: hidden;
+        }
+
+        .dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            background: linear-gradient(135deg, var(--kdf-navy) 0%, var(--kdf-blue) 100%);
+            padding: 20px;
+            color: white;
+        }
+
+        .dropdown-header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dropdown-header .user-avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .dropdown-header .user-details {
+            flex: 1;
+        }
+
+        .dropdown-header .name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .dropdown-header .email {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .dropdown-items {
+            padding: 10px 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #4b5563;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .dropdown-item:hover {
+            background: #f3f4f6;
+            color: var(--kdf-blue);
+            border-left-color: var(--kdf-blue);
+        }
+
+        .dropdown-item i {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .dropdown-item.danger {
+            color: var(--kdf-red);
+        }
+
+        .dropdown-item.danger:hover {
+            background: #fef2f2;
+            border-left-color: var(--kdf-red);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 8px 0;
         }
 
         /* Sidebar */
         .sidebar {
             position: fixed;
             top: 0;
-            left: -var(--sidebar-width);
+            left: -100%;
             width: var(--sidebar-width);
             height: 100vh;
-            background: linear-gradient(180deg, var(--kdf-navy) 0%, #1a1a2e 100%);
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-            transition: left 0.3s ease;
-            z-index: 1001;
+            background: linear-gradient(180deg, var(--kdf-navy) 0%, #0F172A 100%);
+            box-shadow: 4px 0 30px rgba(0,0,0,0.25);
+            transition: all var(--sidebar-transition);
+            z-index: 1002;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
-        .sidebar.open {
+        .sidebar.show {
             left: 0;
         }
 
@@ -192,17 +332,39 @@
             padding: 25px 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
-        .sidebar-header h3 {
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 5px;
+        }
+
+        .sidebar-header-text h3 {
             color: white;
-            font-size: 18px;
-            margin: 0 0 5px 0;
+            font-size: 16px;
+            margin: 0 0 3px 0;
+            font-weight: 700;
         }
 
-        .sidebar-header p {
+        .sidebar-header-text p {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 12px;
+            font-size: 11px;
             margin: 0;
         }
 
@@ -211,38 +373,63 @@
         }
 
         .menu-section {
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .menu-section-title {
             color: rgba(255, 255, 255, 0.5);
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.2px;
             padding: 0 20px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .menu-section-title i {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-section-title.collapsed i {
+            transform: rotate(-90deg);
+        }
+
+        .menu-items {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .menu-items.collapsed {
+            max-height: 0;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 12px 20px;
-            color: rgba(255, 255, 255, 0.8);
+            padding: 14px 20px;
+            color: rgba(255, 255, 255, 0.85);
             text-decoration: none;
             transition: all 0.3s ease;
             border-left: 3px solid transparent;
+            position: relative;
         }
 
         .menu-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
             color: white;
             border-left-color: var(--kdf-gold);
+            padding-left: 25px;
         }
 
         .menu-item.active {
-            background: rgba(212, 175, 55, 0.1);
+            background: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, transparent 100%);
             color: var(--kdf-gold);
             border-left-color: var(--kdf-gold);
         }
@@ -251,26 +438,73 @@
             font-size: 20px;
             width: 24px;
             text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover i {
+            transform: scale(1.2);
         }
 
         .menu-item .badge {
             margin-left: auto;
             background: var(--kdf-red);
             color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .menu-item .submenu-arrow {
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item.has-submenu .submenu-arrow {
+            margin-left: auto;
+        }
+
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .submenu.show {
+            max-height: 500px;
+        }
+
+        .submenu-item {
+            padding: 12px 20px 12px 50px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .submenu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            padding-left: 55px;
+        }
+
+        .submenu-item.active {
+            color: var(--kdf-gold);
+            background: rgba(212, 175, 55, 0.1);
         }
 
         /* Main Content */
         .main-content {
             margin-top: var(--topbar-height);
             padding: 30px;
-            transition: margin-left 0.3s ease;
+            transition: all var(--sidebar-transition);
+            min-height: calc(100vh - var(--topbar-height));
         }
 
-        .main-content.sidebar-open {
+        .main-content.sidebar-expanded {
             margin-left: var(--sidebar-width);
         }
 
@@ -282,7 +516,8 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
+            backdrop-filter: blur(4px);
+            z-index: 1001;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
@@ -293,7 +528,7 @@
             visibility: visible;
         }
 
-        /* Scrollbar Customization */
+        /* Scrollbar */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -312,7 +547,52 @@
         }
 
         /* Responsive */
+        @media (min-width: 1024px) {
+            .overlay {
+                display: none;
+            }
+            
+            .sidebar {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+            
+            .topbar {
+                left: var(--sidebar-width);
+                right: 0;
+            }
+            
+            .toggle-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .sidebar {
+                left: -100%;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content.sidebar-expanded {
+                margin-left: 0;
+            }
+            
+            .topbar.sidebar-expanded {
+                left: var(--sidebar-width);
+            }
+        }
+
         @media (max-width: 768px) {
+            .topbar {
+                padding: 0 15px;
+            }
+            
             .logo-text h1 {
                 font-size: 18px;
             }
@@ -320,10 +600,61 @@
             .logo-text p {
                 display: none;
             }
+            
+            .user-details .rank {
+                display: none;
+            }
+            
+            .user-profile-btn {
+                padding: 8px 12px;
+            }
+            
+            .dropdown-menu {
+                position: fixed;
+                top: var(--topbar-height);
+                left: 0;
+                right: 0;
+                border-radius: 0;
+                min-width: auto;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+        }
 
+        @media (max-width: 480px) {
+            .logo-text h1 {
+                display: none;
+            }
+            
+            .topbar-right {
+                gap: 10px;
+            }
+            
             .user-details {
                 display: none;
             }
+            
+            .user-profile-btn {
+                padding: 8px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
         }
     </style>
 </head>
@@ -334,177 +665,169 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3>🛡️ SENTINEL System</h3>
-            <p>Kenya Defence Forces</p>
+            <div class="sidebar-logo">
+                <img src="/static/images/kdf-logo.png" alt="KDF Logo" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-shield-fill-check\' style=\'color: #15803d; font-size: 24px;\'></i>';">
+            </div>
+            <div class="sidebar-header-text">
+                <h3>SENTINEL COMMAND</h3>
+                <p>Kenya Defence Forces</p>
+            </div>
         </div>
 
         <div class="sidebar-menu">
             <!-- Dashboard Section -->
             <div class="menu-section">
-                <div class="menu-section-title">Dashboard</div>
-                <a href="#" class="menu-item active">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Overview</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-graph-up"></i>
-                    <span>Analytics</span>
-                </a>
+                <div class="menu-section-title" onclick="toggleSection(this)">
+                    <span>Command Center</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="menu-items">
+                    <a href="#" class="menu-item active">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Strategic Overview</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <span>Real-time Analytics</span>
+                        <span class="badge">Live</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-activity"></i>
+                        <span>Operational Status</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Personnel Management -->
             <div class="menu-section">
-                <div class="menu-section-title">Personnel</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-people"></i>
-                    <span>All Personnel</span>
-                    <span class="badge">{{ total_personnel|default:"0" }}</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-person-badge"></i>
-                    <span>Officers</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-shield-check"></i>
-                    <span>Clearance Levels</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-clock-history"></i>
-                    <span>Attendance</span>
-                </a>
+                <div class="menu-section-title" onclick="toggleSection(this)">
+                    <span>Personnel Command</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="menu-items">
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-people-fill"></i>
+                        <span>All Personnel</span>
+                        <span class="badge">{{ total_personnel|default:"0" }}</span>
+                    </a>
+                    <a href="#" class="menu-item has-submenu" onclick="toggleSubmenu(this)">
+                        <i class="bi bi-person-badge"></i>
+                        <span>Officer Management</span>
+                        <i class="bi bi-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        <a href="#" class="submenu-item">Commissioned Officers</a>
+                        <a href="#" class="submenu-item">Non-Commissioned</a>
+                        <a href="#" class="submenu-item">Special Forces</a>
+                    </div>
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Clearance Levels</span>
+                        <span class="badge">L{{ user.clearance_level|default:"1" }}</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Operations -->
             <div class="menu-section">
-                <div class="menu-section-title">Operations</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-crosshair"></i>
-                    <span>Active Missions</span>
-                    <span class="badge">{{ active_missions|default:"0" }}</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-journal-text"></i>
-                    <span>Mission Planning</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-diagram-3"></i>
-                    <span>Mission Assignments</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-archive"></i>
-                    <span>Completed Missions</span>
-                </a>
+                <div class="menu-section-title" onclick="toggleSection(this)">
+                    <span>Operations</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="menu-items">
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-crosshair"></i>
+                        <span>Active Missions</span>
+                        <span class="badge">{{ active_missions|default:"0" }}</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-journal-text"></i>
+                        <span>Mission Planning</span>
+                    </a>
+                    <a href="#" class="menu-item has-submenu" onclick="toggleSubmenu(this)">
+                        <i class="bi bi-diagram-3"></i>
+                        <span>Assignments</span>
+                        <i class="bi bi-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        <a href="#" class="submenu-item">Deployment</a>
+                        <a href="#" class="submenu-item">Rotation</a>
+                        <a href="#" class="submenu-item">Special Assignments</a>
+                    </div>
+                </div>
             </div>
 
             <!-- Intelligence -->
             <div class="menu-section">
-                <div class="menu-section-title">Intelligence</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <span>Threat Intelligence</span>
-                    <span class="badge">{{ critical_threats|default:"0" }}</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-radar"></i>
-                    <span>AI Threat Analysis</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-geo-alt"></i>
-                    <span>Threat Map</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <span>Intelligence Reports</span>
-                </a>
+                <div class="menu-section-title" onclick="toggleSection(this)">
+                    <span>Intelligence</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="menu-items">
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Threat Intelligence</span>
+                        <span class="badge">{{ critical_threats|default:"0" }}</span>
+                    </a>
+                    <a href="#" class="menu-item has-submenu" onclick="toggleSubmenu(this)">
+                        <i class="bi bi-radar"></i>
+                        <span>AI Analysis</span>
+                        <i class="bi bi-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        <a href="#" class="submenu-item">Threat Prediction</a>
+                        <a href="#" class="submenu-item">Pattern Recognition</a>
+                        <a href="#" class="submenu-item">Risk Assessment</a>
+                    </div>
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <span>Threat Map</span>
+                        <span class="badge">3D</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Logistics -->
             <div class="menu-section">
-                <div class="menu-section-title">Logistics</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-boxes"></i>
-                    <span>Equipment Inventory</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-truck"></i>
-                    <span>Supply Chain</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-wrench"></i>
-                    <span>Maintenance</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-cart"></i>
-                    <span>Procurement</span>
-                </a>
-            </div>
-
-            <!-- Incident Management -->
-            <div class="menu-section">
-                <div class="menu-section-title">Incidents</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-exclamation-octagon"></i>
-                    <span>Active Incidents</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-megaphone"></i>
-                    <span>Report Incident</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-search"></i>
-                    <span>Incident History</span>
-                </a>
+                <div class="menu-section-title" onclick="toggleSection(this)">
+                    <span>Logistics</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="menu-items">
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-boxes"></i>
+                        <span>Equipment Inventory</span>
+                    </a>
+                    <a href="#" class="menu-item has-submenu" onclick="toggleSubmenu(this)">
+                        <i class="bi bi-truck"></i>
+                        <span>Supply Chain</span>
+                        <i class="bi bi-chevron-right submenu-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        <a href="#" class="submenu-item">Current Deliveries</a>
+                        <a href="#" class="submenu-item">Procurement</a>
+                        <a href="#" class="submenu-item">Inventory Tracking</a>
+                    </div>
+                </div>
             </div>
 
             <!-- AI & ML -->
             <div class="menu-section">
-                <div class="menu-section-title">AI & Machine Learning</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-cpu"></i>
-                    <span>ML Models</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-graph-up-arrow"></i>
-                    <span>Predictions</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-bar-chart"></i>
-                    <span>Analytics Dashboard</span>
-                </a>
-            </div>
-
-            <!-- Security & Audit -->
-            <div class="menu-section">
-                <div class="menu-section-title">Security</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-shield-lock"></i>
-                    <span>Audit Logs</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-key"></i>
-                    <span>Access Control</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-fingerprint"></i>
-                    <span>2FA Settings</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-file-lock"></i>
-                    <span>Login Attempts</span>
-                </a>
-            </div>
-
-            <!-- Settings -->
-            <div class="menu-section">
-                <div class="menu-section-title">System</div>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-gear"></i>
-                    <span>Settings</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-question-circle"></i>
-                    <span>Help & Support</span>
-                </a>
+                <div class="menu-section-title" onclick="toggleSection(this)">
+                    <span>AI Systems</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="menu-items">
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-cpu-fill"></i>
+                        <span>ML Models</span>
+                        <span class="badge">{{ active_ml_models|default:"0" }}</span>
+                    </a>
+                    <a href="#" class="menu-item">
+                        <i class="bi bi-robot"></i>
+                        <span>Predictive Analysis</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -513,32 +836,75 @@
     <div class="topbar" id="topbar">
         <div class="topbar-left">
             <button class="toggle-btn" onclick="toggleSidebar()">
-                <i class="bi bi-list" style="font-size: 24px;"></i>
+                <i class="bi bi-list"></i>
             </button>
             <div class="logo-section">
-                <div class="logo-icon">
-                    <i class="bi bi-shield-fill-check"></i>
+                <div class="logo-container">
+                    <img src="/static/images/kdf-logo.png" alt="KDF Logo" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<i class=\'bi bi-shield-fill-check\' style=\'color: #15803d; font-size: 24px;\'></i>';">
                 </div>
                 <div class="logo-text">
                     <h1>KDF SENTINEL</h1>
-                    <p>Security & Intelligence Network</p>
+                    <p>Strategic Command Dashboard</p>
                 </div>
             </div>
         </div>
         <div class="topbar-right">
-            <div class="user-info">
-                <div class="user-avatar">
-                    {{ user.first_name.0|default:"U" }}{{ user.last_name.0|default:"" }}
-                </div>
-                <div class="user-details">
-                    <div class="name">{{ user.rank|default:"" }} {{ user.last_name|default:"User" }}</div>
-                    <div class="rank">{{ user.branch|default:"KDF" }} - Clearance L{{ user.clearance_level|default:"1" }}</div>
+            <div class="user-profile" id="userProfile">
+                <button class="user-profile-btn" onclick="toggleProfileMenu()">
+                    <div class="user-avatar">
+                        <img src="/static/images/profile.png" alt="Profile" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:18px;\'>{{ user.first_name.0|default:"K" }}{{ user.last_name.0|default:"D" }}</div>';">
+                    </div>
+                    <div class="user-details">
+                        <div class="name">{{ user.rank|default:"General" }} {{ user.last_name|default:"Command" }}</div>
+                        <div class="rank">
+                            <i class="bi bi-star-fill"></i>
+                            {{ user.branch|default:"Headquarters" }} • L{{ user.clearance_level|default:"5" }}
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-down dropdown-arrow"></i>
+                </button>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <img src="/static/images/profile.png" alt="Profile" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:linear-gradient(135deg,#3B82F6,#8B5CF6);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:18px;\'>{{ user.first_name.0|default:"K" }}{{ user.last_name.0|default:"D" }}</div>';">
+                            </div>
+                            <div class="user-details">
+                                <div class="name">{{ user.rank|default:"General" }} {{ user.first_name|default:"Command" }} {{ user.last_name|default:"Officer" }}</div>
+                                <div class="email">{{ user.email|default:"command@kdf.mil.ke" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-items">
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-person-circle"></i>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-gear"></i>
+                            <span>Account Settings</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-bell"></i>
+                            <span>Notifications</span>
+                            <span style="margin-left: auto; font-size: 11px; background: var(--kdf-red); color: white; padding: 2px 8px; border-radius: 10px;">3</span>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="bi bi-shield-lock"></i>
+                            <span>Security Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item danger">
+                            <i class="bi bi-person-x"></i>
+                            <span>Deactivate Account</span>
+                        </a>
+                        <a href="{% url 'logout' %}" class="dropdown-item danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-            <a href="{% url 'logout' %}" class="logout-btn">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
-            </a>
         </div>
     </div>
 
@@ -550,7 +916,9 @@
     </div>
 
     <script>
+        // Sidebar functionality
         let sidebarOpen = false;
+        let profileMenuOpen = false;
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -561,50 +929,156 @@
             sidebarOpen = !sidebarOpen;
             
             if (sidebarOpen) {
-                sidebar.classList.add('open');
+                sidebar.classList.add('show');
                 overlay.classList.add('show');
-                topbar.classList.add('sidebar-open');
-                mainContent.classList.add('sidebar-open');
+                topbar.classList.add('sidebar-expanded');
+                mainContent.classList.add('sidebar-expanded');
             } else {
-                sidebar.classList.remove('open');
+                sidebar.classList.remove('show');
                 overlay.classList.remove('show');
-                topbar.classList.remove('sidebar-open');
-                mainContent.classList.remove('sidebar-open');
+                topbar.classList.remove('sidebar-expanded');
+                mainContent.classList.remove('sidebar-expanded');
+            }
+            
+            // Close profile menu if open
+            if (profileMenuOpen) {
+                toggleProfileMenu(false);
             }
         }
 
-        // Active menu highlighting
-        const currentPath = window.location.pathname;
-        const menuItems = document.querySelectorAll('.menu-item');
-        
-        menuItems.forEach(item => {
-            if (item.getAttribute('href') === currentPath) {
-                item.classList.add('active');
-            }
+        // Profile dropdown functionality
+        function toggleProfileMenu(forceClose = null) {
+            const dropdown = document.getElementById('profileDropdown');
+            const profileBtn = document.querySelector('.user-profile-btn');
             
-            item.addEventListener('click', function(e) {
-                // Remove active from all items
-                menuItems.forEach(i => i.classList.remove('active'));
-                // Add active to clicked item
-                this.classList.add('active');
+            if (forceClose === false || (profileMenuOpen && forceClose === null)) {
+                dropdown.classList.remove('show');
+                profileBtn.classList.remove('active');
+                profileMenuOpen = false;
+            } else {
+                dropdown.classList.add('show');
+                profileBtn.classList.add('active');
+                profileMenuOpen = true;
+                
+                // Close sidebar on mobile when opening profile menu
+                if (window.innerWidth < 768 && sidebarOpen) {
+                    toggleSidebar();
+                }
+            }
+        }
+
+        // Close profile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const profile = document.getElementById('userProfile');
+            if (!profile.contains(event.target) && profileMenuOpen) {
+                toggleProfileMenu(false);
+            }
+        });
+
+        // Toggle sidebar sections
+        function toggleSection(element) {
+            const parent = element.parentElement;
+            const menuItems = parent.querySelector('.menu-items');
+            element.classList.toggle('collapsed');
+            menuItems.classList.toggle('collapsed');
+        }
+
+        // Toggle submenus
+        function toggleSubmenu(element) {
+            const submenu = element.nextElementSibling;
+            const arrow = element.querySelector('.submenu-arrow');
+            
+            submenu.classList.toggle('show');
+            arrow.style.transform = submenu.classList.contains('show') ? 'rotate(90deg)' : 'rotate(0)';
+        }
+
+        // Active menu highlighting
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuItems = document.querySelectorAll('.menu-item, .submenu-item');
+            
+            menuItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath) {
+                    item.classList.add('active');
+                    // Expand parent section if it's a submenu item
+                    const submenu = item.closest('.submenu');
+                    if (submenu) {
+                        submenu.classList.add('show');
+                        const parent = submenu.previousElementSibling;
+                        if (parent) {
+                            parent.querySelector('.submenu-arrow').style.transform = 'rotate(90deg)';
+                        }
+                    }
+                }
+                
+                item.addEventListener('click', function(e) {
+                    if (this.classList.contains('has-submenu')) {
+                        e.preventDefault();
+                        toggleSubmenu(this);
+                    } else {
+                        // Remove active from all items
+                        menuItems.forEach(i => i.classList.remove('active'));
+                        // Add active to clicked item
+                        this.classList.add('active');
+                        // Close sidebar on mobile after click
+                        if (window.innerWidth < 1024) {
+                            toggleSidebar();
+                        }
+                    }
+                });
             });
         });
 
         // Close sidebar on escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && sidebarOpen) {
-                toggleSidebar();
+            if (e.key === 'Escape') {
+                if (sidebarOpen) {
+                    toggleSidebar();
+                }
+                if (profileMenuOpen) {
+                    toggleProfileMenu(false);
+                }
             }
         });
 
-        // Responsive: Close sidebar on resize if window is small
+        // Responsive behavior
         window.addEventListener('resize', function() {
-            if (window.innerWidth > 1024 && sidebarOpen) {
-                // Keep sidebar open on large screens
-            } else if (window.innerWidth <= 768 && sidebarOpen) {
-                toggleSidebar();
+            if (window.innerWidth >= 1024) {
+                // Auto-show sidebar on large screens
+                if (!sidebarOpen) {
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.classList.add('show');
+                    sidebarOpen = true;
+                }
+            } else {
+                // Auto-hide sidebar on small screens if it's open
+                if (sidebarOpen) {
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.classList.remove('show');
+                    sidebarOpen = false;
+                    document.getElementById('overlay').classList.remove('show');
+                }
+            }
+            
+            // Close profile menu on resize
+            if (profileMenuOpen) {
+                toggleProfileMenu(false);
             }
         });
+
+        // Initialize sidebar state based on screen size
+        function initSidebar() {
+            if (window.innerWidth >= 1024) {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.add('show');
+                sidebarOpen = true;
+                document.getElementById('topbar').classList.add('sidebar-expanded');
+                document.getElementById('mainContent').classList.add('sidebar-expanded');
+            }
+        }
+
+        // Call init on load
+        initSidebar();
     </script>
 </body>
 </html>
