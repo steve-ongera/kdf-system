@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - KDF SENTINEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #15803d 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="bg-white rounded-full w-24 h-24 mx-auto flex items-center justify-center mb-4 shadow-lg">
+                <svg class="w-16 h-16 text-blue-700" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Two-Factor Authentication</h1>
+            <p class="text-blue-100">Enter the verification code sent to your device</p>
+        </div>
+
+        <!-- OTP Card -->
+        <div class="bg-white rounded-lg shadow-2xl p-8">
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800">Verify Your Identity</h2>
+                <p class="text-sm text-gray-600 mt-2">
+                    Code sent to: {{ user.phone_number|slice:"-4:" }}****
+                </p>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- OTP Form -->
+            <form method="POST" action="{% url 'verify_otp' %}">
+                {% csrf_token %}
+                
+                <div class="mb-6">
+                    <label for="otp_code" class="block text-sm font-semibold text-gray-700 mb-2 text-center">
+                        Enter 6-Digit Code
+                    </label>
+                    <input 
+                        type="text" 
+                        name="otp_code" 
+                        id="otp_code" 
+                        required
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        placeholder="000000"
+                        class="w-full px-4 py-4 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl font-mono tracking-widest"
+                        autofocus
+                    >
+                </div>
+
+                <button 
+                    type="submit"
+                    class="w-full bg-gradient-to-r from-blue-600 to-green-600 text-white font-bold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-green-700 transition duration-200 shadow-lg"
+                >
+                    Verify Code
+                </button>
+            </form>
+
+            <!-- Resend OTP -->
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600 mb-2">Didn't receive the code?</p>
+                <a href="{% url 'resend_otp' %}" class="text-blue-600 hover:text-blue-800 font-semibold">
+                    Resend OTP
+                </a>
+            </div>
+
+            <!-- Timer -->
+            <div class="mt-4 text-center">
+                <p class="text-xs text-gray-500">
+                    ⏱️ Code expires in <span id="timer" class="font-bold">10:00</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="mt-4 bg-blue-100 border-l-4 border-blue-500 text-blue-800 p-4 rounded">
+            <p class="font-bold text-sm">🔐 Security Notice</p>
+            <p class="text-xs">Never share your OTP code with anyone. KDF will never ask for your code.</p>
+        </div>
+    </div>
+
+    <script>
+        // OTP Timer
+        let timeLeft = 600; // 10 minutes in seconds
+        const timerElement = document.getElementById('timer');
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerElement.textContent = 'EXPIRED';
+                timerElement.classList.add('text-red-600');
+            }
+        }, 1000);
+
+        // Auto-focus and format OTP input
+        const otpInput = document.getElementById('otp_code');
+        otpInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+</html>
