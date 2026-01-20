@@ -14,6 +14,8 @@ from datetime import timedelta, datetime
 import random
 import pyotp
 from decimal import Decimal
+from django.db.models import Count
+
 
 from .models import (
     KDFUser, TwoFactorAuth, LoginAttempt, Mission, MissionAssignment,
@@ -326,11 +328,28 @@ def dashboard_router(request):
         return redirect('personnel_dashboard')
 
 
-# ==================== COMMAND DASHBOARD (Generals, Brigadiers) ====================
+# ==================== COMMAND DASHBOARD (Generals, Brigadiers and general IT Admin) ====================
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from django.db.models import Count, Sum, Avg, Q, F, Value
+from django.db.models.functions import TruncDate, TruncMonth, Coalesce
+from django.db.models import Case, When, IntegerField
+from datetime import timedelta
+from decimal import Decimal
+import json
+
+from .models import (
+    KDFUser, Mission, ThreatIntelligence, Equipment, 
+    SupplyChain, Incident, AuditLog, MLModel, LoginAttempt
+)
+
 
 @login_required
 def command_dashboard(request):
-    """Strategic overview dashboard for high command"""
+    """Strategic overview dashboard for high command with advanced analytics"""
     
     # Check permission
     if request.user.rank not in ['GENERAL', 'BRIGADIER']:
@@ -341,8 +360,10 @@ def command_dashboard(request):
     today = timezone.now().date()
     last_30_days = today - timedelta(days=30)
     last_7_days = today - timedelta(days=7)
+    last_90_days = today - timedelta(days=90)
+    last_12_months = today - timedelta(days=365)
     
-    # Key Metrics
+    # ==================== KEY METRICS ====================
     total_personnel = KDFUser.objects.filter(status='ACTIVE').count()
     active_missions = Mission.objects.filter(status='ACTIVE').count()
     critical_threats = ThreatIntelligence.objects.filter(
@@ -350,54 +371,395 @@ def command_dashboard(request):
         status__in=['UNDER_INVESTIGATION', 'VERIFIED', 'MONITORING']
     ).count()
     
-    # Mission Statistics
-    missions_by_status = Mission.objects.values('status').annotate(count=Count('id'))
+    missions_by_status = list(
+        Mission.objects
+        .values('status')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
     
-    # Threat Analysis
-    threats_last_30_days = ThreatIntelligence.objects.filter(
-        detected_at__gte=last_30_days
-    ).count()
+    missions_timeline = list(
+        Mission.objects.filter(created_at__gte=last_90_days)
+        .annotate(date=TruncDate('created_at'))
+        .values('date')
+        .annotate(count=Count('id'))
+        .order_by('date')
+    )
     
+    # Mission by Classification (for Bar Chart)
+    missions_by_classification = list(
+        Mission.objects.values('classification')
+        .annotate(count=Count('id'))
+        .order_by('classification')
+    )
+    
+    # Average Mission Duration
+    completed_missions = Mission.objects.filter(
+        status='COMPLETED',
+        end_date__isnull=False
+    )
+    
+    # ==================== THREAT INTELLIGENCE ====================
+    # Threat Trends (Last 30 Days - Line Graph)
+    threat_trends = list(
+        ThreatIntelligence.objects.filter(detected_at__gte=last_30_days)
+        .annotate(date=TruncDate('detected_at'))
+        .values('date')
+        .annotate(count=Count('id'))
+        .order_by('date')
+    )
+    
+    # Threat Severity Distribution (Donut Chart)
+    threats_by_severity = list(
+        ThreatIntelligence.objects.values('severity')
+        .annotate(count=Count('id'))
+        .order_by('severity')
+    )
+    
+    # Threat Source Analysis (Bar Chart)
+    threats_by_source = list(
+        ThreatIntelligence.objects.values('source')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    
+    # AI Confidence Analysis
+    avg_threat_confidence_result = ThreatIntelligence.objects.aggregate(
+        avg_confidence=Avg('ai_confidence_score')
+    )
+    avg_threat_confidence = avg_threat_confidence_result['avg_confidence'] or Decimal('0')
+    
+    # Recent High Severity Threats
     high_severity_threats = ThreatIntelligence.objects.filter(
         severity__in=['HIGH', 'CRITICAL'],
         status__in=['UNDER_INVESTIGATION', 'VERIFIED', 'MONITORING']
     ).order_by('-detected_at')[:10]
     
-    # Budget Overview
-    total_budget_allocated = Mission.objects.filter(
-        status__in=['APPROVED', 'ACTIVE']
-    ).aggregate(total=Sum('allocated_budget'))['total'] or Decimal('0')
+    # ==================== PERSONNEL ANALYTICS ====================
+    # Branch Distribution (for Donut Chart)
+    branch_distribution = list(
+        KDFUser.objects.filter(status='ACTIVE')
+        .values('branch')
+        .annotate(count=Count('id'))
+    )
     
-    # Recent Incidents
+    # Rank Distribution (for Bar Chart)
+    rank_distribution = list(
+        KDFUser.objects.filter(status='ACTIVE')
+        .values('rank')
+        .annotate(count=Count('id'))
+        .order_by('rank')
+    )
+    
+    # Clearance Level Distribution (for Radar Chart)
+    clearance_distribution = list(
+        KDFUser.objects.filter(status='ACTIVE')
+        .values('clearance_level')
+        .annotate(count=Count('id'))
+        .order_by('clearance_level')
+    )
+    
+    # Personnel Status
+    personnel_by_status = list(
+        KDFUser.objects.values('status')
+        .annotate(count=Count('id'))
+    )
+    
+    # ==================== EQUIPMENT & LOGISTICS ====================
+    # Equipment Status (Donut Chart)
+    equipment_by_status = list(
+        Equipment.objects.values('status')
+        .annotate(count=Count('id'))
+    )
+    
+    # Equipment Category Distribution (Bar Chart)
+    equipment_by_category = list(
+        Equipment.objects.values('category')
+        .annotate(
+            count=Count('id'),
+            total_value=Sum('total_value')
+        )
+        .order_by('-total_value')
+    )
+    
+    # Equipment requiring maintenance soon
+    equipment_maintenance_due = Equipment.objects.filter(
+        next_maintenance__lte=today + timedelta(days=7),
+        status='OPERATIONAL'
+    ).count()
+    
+    # Total Equipment Value
+    total_equipment_value_result = Equipment.objects.aggregate(
+        total=Sum('total_value')
+    )
+    total_equipment_value = total_equipment_value_result['total'] or Decimal('0')
+    
+    # ==================== SUPPLY CHAIN ====================
+    # Supply Chain Status (for Bar Chart)
+    supply_by_status = list(
+        SupplyChain.objects.values('status')
+        .annotate(count=Count('id'))
+        .order_by('status')
+    )
+    
+    # Monthly Supply Requests (Line Graph)
+    monthly_supply_requests = list(
+        SupplyChain.objects.filter(requested_date__gte=last_12_months)
+        .annotate(month=TruncMonth('requested_date'))
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+    
+    # ==================== INCIDENT MANAGEMENT ====================
+    # Incident Trends (Last 30 Days)
+    incident_trends = list(
+        Incident.objects.filter(reported_at__gte=last_30_days)
+        .annotate(date=TruncDate('reported_at'))
+        .values('date')
+        .annotate(count=Count('id'))
+        .order_by('date')
+    )
+    
+    # Incidents by Type (Bar Chart)
+    incidents_by_type = list(
+        Incident.objects.values('incident_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:8]
+    )
+    
+    # Incidents by Priority (Donut Chart)
+    incidents_by_priority = list(
+        Incident.objects.values('priority')
+        .annotate(count=Count('id'))
+    )
+    
+    # Recent Critical Incidents
     recent_incidents = Incident.objects.filter(
         priority__in=['HIGH', 'CRITICAL']
     ).order_by('-reported_at')[:8]
     
-    # Equipment Status
-    equipment_operational = Equipment.objects.filter(status='OPERATIONAL').count()
-    equipment_maintenance = Equipment.objects.filter(status='MAINTENANCE').count()
-    equipment_damaged = Equipment.objects.filter(status='DAMAGED').count()
+    # Resolution Rate
+    total_incidents = Incident.objects.count()
+    resolved_incidents = Incident.objects.filter(resolved=True).count()
+    resolution_rate = (resolved_incidents / total_incidents * 100) if total_incidents > 0 else 0
     
-    # Branch Distribution
-    branch_distribution = KDFUser.objects.filter(status='ACTIVE').values('branch').annotate(count=Count('id'))
+    # ==================== BUDGET & FINANCIAL ====================
+    # Total Budget Allocated
+    total_budget_allocated_result = Mission.objects.filter(
+        status__in=['APPROVED', 'ACTIVE']
+    ).aggregate(total=Sum('allocated_budget'))
+    total_budget_allocated = total_budget_allocated_result['total'] or Decimal('0')
+    
+    # Budget by Mission Classification
+    budget_by_classification = list(
+        Mission.objects.filter(allocated_budget__isnull=False)
+        .values('classification')
+        .annotate(total_budget=Sum('allocated_budget'))
+        .order_by('classification')
+    )
+    
+    # ==================== SECURITY & AUDIT ====================
+    # Failed Login Attempts (Last 7 Days)
+    failed_logins = LoginAttempt.objects.filter(
+        successful=False,
+        timestamp__gte=last_7_days
+    ).count()
+    
+    # Suspicious Activity
+    suspicious_activities = AuditLog.objects.filter(
+        flagged_suspicious=True,
+        timestamp__gte=last_7_days
+    ).count()
+    
+    # Login trends - FIXED: Using Sum with Case/When
+    login_trends_data = list(
+        LoginAttempt.objects.filter(timestamp__gte=last_30_days)
+        .annotate(date=TruncDate('timestamp'))
+        .values('date')
+        .annotate(
+            successful=Sum(
+                Case(
+                    When(successful=True, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField()
+                )
+            ),
+            failed=Sum(
+                Case(
+                    When(successful=False, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField()
+                )
+            )
+        )
+        .order_by('date')
+    )
+    
+    # Process login trends to ensure proper JSON serialization
+    processed_login_trends = []
+    for trend in login_trends_data:
+        processed_login_trends.append({
+            'date': trend['date'].isoformat() if trend['date'] else None,
+            'successful': trend['successful'] or 0,
+            'failed': trend['failed'] or 0
+        })
+    
+    # ==================== ML MODEL PERFORMANCE ====================
+    # Active ML Models
+    active_ml_models = MLModel.objects.filter(is_active=True).count()
+    
+    # Model Performance (Radar Chart Data)
+    ml_model_performance = list(
+        MLModel.objects.filter(is_active=True)
+        .values('model_type', 'accuracy', 'precision', 'recall', 'f1_score')
+    )
+    
+    # Convert Decimal fields to float for JSON serialization
+    processed_ml_performance = []
+    for model in ml_model_performance:
+        processed_model = {
+            'model_type': model['model_type'],
+            'accuracy': float(model['accuracy']) if model['accuracy'] else 0.0,
+            'precision': float(model['precision']) if model['precision'] else 0.0,
+            'recall': float(model['recall']) if model['recall'] else 0.0,
+            'f1_score': float(model['f1_score']) if model['f1_score'] else 0.0
+        }
+        processed_ml_performance.append(processed_model)
+    
+    # ==================== OPERATIONAL READINESS SCORE (Radar Chart) ====================
+    # Calculate equipment operational percentage
+    equipment_status_counts = {item['status']: item['count'] for item in equipment_by_status}
+    total_equipment_count = sum(equipment_status_counts.values())
+    equipment_operational_pct = (equipment_status_counts.get('OPERATIONAL', 0) / total_equipment_count * 100) if total_equipment_count > 0 else 0
+    
+    # Calculate logistics delivery percentage
+    supply_status_counts = {item['status']: item['count'] for item in supply_by_status}
+    total_supplies = sum(supply_status_counts.values())
+    logistics_delivery_pct = (supply_status_counts.get('DELIVERED', 0) / total_supplies * 100) if total_supplies > 0 else 0
+    
+    operational_readiness = {
+        'personnel': min((total_personnel / 10000) * 100, 100),  # Assuming 10,000 is full strength
+        'equipment': min(equipment_operational_pct, 100),
+        'missions': min((active_missions / 50) * 100, 100),  # Assuming 50 is max concurrent
+        'intelligence': max(0, min(100 - (critical_threats * 5), 100)),  # Inverse of threats
+        'logistics': min(logistics_delivery_pct, 100),
+    }
+    
+    # ==================== ADDITIONAL METRICS ====================
+    # Mission success rate (if we had this field)
+    completed_successful_missions = Mission.objects.filter(
+        status='COMPLETED'
+    ).count()
+    
+    total_completed_missions = Mission.objects.filter(
+        status='COMPLETED'
+    ).count()
+    
+    mission_success_rate = (completed_successful_missions / total_completed_missions * 100) if total_completed_missions > 0 else 0
+    
+    # Average response time for incidents (if we had this field)
+    resolved_incidents_with_time = Incident.objects.filter(
+        resolved=True,
+        resolved_at__isnull=False,
+        reported_at__isnull=False
+    )
+    
+    # Equipment utilization rate
+    equipment_assigned = Equipment.objects.filter(assigned_to__isnull=False).count()
+    total_equipment = Equipment.objects.count()
+    equipment_utilization = (equipment_assigned / total_equipment * 100) if total_equipment > 0 else 0
+    
+    # ==================== PROCESS DATA FOR JSON SERIALIZATION ====================
+    def process_for_json(data):
+        """Helper to convert dates and decimals for JSON serialization"""
+        if isinstance(data, list):
+            return [process_for_json(item) for item in data]
+        elif isinstance(data, dict):
+            processed_dict = {}
+            for key, value in data.items():
+                try:
+                    processed_dict[key] = process_for_json(value)
+                except (ValueError, TypeError):
+                    processed_dict[key] = str(value) if value is not None else None
+            return processed_dict
+        elif isinstance(data, Decimal):
+            return float(data)
+        elif hasattr(data, 'isoformat'):
+            return data.isoformat()
+        elif isinstance(data, (int, float, str, bool)) or data is None:
+            return data
+        else:
+            return str(data)
+    
+    # ==================== CONVERT TO JSON FOR JAVASCRIPT ====================
+    # Prepare all chart data
+    chart_data = {
+        'missions_by_status': process_for_json(missions_by_status),
+        'missions_timeline': process_for_json(missions_timeline),
+        'missions_by_classification': process_for_json(missions_by_classification),
+        'threat_trends': process_for_json(threat_trends),
+        'threats_by_severity': process_for_json(threats_by_severity),
+        'threats_by_source': process_for_json(threats_by_source),
+        'branch_distribution': process_for_json(branch_distribution),
+        'rank_distribution': process_for_json(rank_distribution),
+        'clearance_distribution': process_for_json(clearance_distribution),
+        'equipment_by_status': process_for_json(equipment_by_status),
+        'equipment_by_category': process_for_json(equipment_by_category),
+        'supply_by_status': process_for_json(supply_by_status),
+        'monthly_supply_requests': process_for_json(monthly_supply_requests),
+        'incident_trends': process_for_json(incident_trends),
+        'incidents_by_type': process_for_json(incidents_by_type),
+        'incidents_by_priority': process_for_json(incidents_by_priority),
+        'budget_by_classification': process_for_json(budget_by_classification),
+        'login_trends': processed_login_trends,
+        'operational_readiness': operational_readiness,
+        'ml_model_performance': processed_ml_performance,
+    }
+    
+    # Convert all chart data to JSON strings
+    chart_data_json = {key: json.dumps(value) for key, value in chart_data.items()}
     
     context = {
+        # Key Metrics
         'total_personnel': total_personnel,
         'active_missions': active_missions,
         'critical_threats': critical_threats,
-        'missions_by_status': missions_by_status,
-        'threats_last_30_days': threats_last_30_days,
-        'high_severity_threats': high_severity_threats,
         'total_budget_allocated': total_budget_allocated,
+        'equipment_maintenance_due': equipment_maintenance_due,
+        'failed_logins': failed_logins,
+        'suspicious_activities': suspicious_activities,
+        'active_ml_models': active_ml_models,
+        'resolution_rate': round(resolution_rate, 1),
+        'avg_threat_confidence': round(float(avg_threat_confidence) * 100, 1),
+        'mission_success_rate': round(mission_success_rate, 1),
+        'equipment_utilization': round(equipment_utilization, 1),
+        
+        # Chart Data (JSON strings)
+        **chart_data_json,
+        
+        # List Data
+        'high_severity_threats': high_severity_threats,
         'recent_incidents': recent_incidents,
-        'equipment_operational': equipment_operational,
-        'equipment_maintenance': equipment_maintenance,
-        'equipment_damaged': equipment_damaged,
-        'branch_distribution': branch_distribution,
+        'personnel_by_status': personnel_by_status,
+        'total_equipment_value': total_equipment_value,
+        'total_incidents': total_incidents,
+        'resolved_incidents': resolved_incidents,
+        'equipment_assigned': equipment_assigned,
+        'total_equipment': total_equipment,
+        'equipment_operational_pct': round(equipment_operational_pct, 1),
+        'logistics_delivery_pct': round(logistics_delivery_pct, 1),
+        'completed_missions_count': total_completed_missions,
+        'completed_successful_missions': completed_successful_missions,
+        
+        # User information for dashboard
+        'user_rank': request.user.rank,
+        'user_name': f"{request.user.rank} {request.user.first_name} {request.user.last_name}",
+        'user_branch': request.user.branch,
+        'user_clearance': request.user.clearance_level,
     }
     
     return render(request, 'sentinel/dashboards/command_dashboard.html', context)
-
 
 # ==================== OPERATIONS DASHBOARD (Colonels, Majors) ====================
 
